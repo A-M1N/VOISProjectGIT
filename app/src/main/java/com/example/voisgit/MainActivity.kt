@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.rememberImagePainter
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,9 +74,24 @@ fun ResultsScreen(navController: NavController, query: String) {
     val viewModel = remember { UserRepository() }
     val users by viewModel.users.collectAsState()
     val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(query) {
         viewModel.searchUsers(query)
+    }
+
+    // Function to trigger loading more users
+    val loadMoreUsers: () -> Unit = {
+        coroutineScope.launch {
+            viewModel.loadMoreUsers()
+        }
+    }
+
+    // Load more users when scrolled to the end
+    LaunchedEffect(listState.firstVisibleItemIndex) {
+        if (listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index == users.size - 1) {
+            loadMoreUsers()
+        }
     }
 
     Column(modifier = Modifier.padding(16.dp)) {
@@ -112,3 +128,4 @@ fun UserItem(user: User) {
         }
     }
 }
+

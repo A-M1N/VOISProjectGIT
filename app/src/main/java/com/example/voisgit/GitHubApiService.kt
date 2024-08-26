@@ -7,7 +7,10 @@ import retrofit2.http.Query
 
 interface GitHubApiService {
     @GET("search/users")
-    suspend fun searchUsers(@Query("q") query: String): SearchResult
+    suspend fun searchUsers(
+        @Query("q") query: String,
+        @Query("page") page: Int = 1
+    ): SearchResult
 
     companion object {
         private const val BASE_URL = "https://api.github.com/"
@@ -22,7 +25,7 @@ interface GitHubApiService {
     }
 }
 
-data class SearchResult(val items: List<User>)
+data class SearchResult(val items: List<User>, val total_count: Int)
 
 data class User(
     val login: String,

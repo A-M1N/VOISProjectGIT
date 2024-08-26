@@ -14,17 +14,24 @@ class UserRepository {
     val users: StateFlow<List<User>> = _users
 
     private val apiService: GitHubApiService = GitHubApiService.create()
+    private var currentPage = 1
+    private var totalItems = 0
+    private var query = ""
 
     suspend fun searchUsers(query: String) {
-        val result = apiService.searchUsers(query)
+        this.query = query
+        currentPage = 1
+        val result = apiService.searchUsers(query, currentPage)
+        totalItems = result.total_count
         _users.value = result.items
     }
 
-
-    suspend fun loadMoreUsers(query: String, page: Int) {
-
-        val result = apiService.searchUsers("$query&page=$page")
-        _users.value = _users.value + result.items
+    suspend fun loadMoreUsers() {
+        if (_users.value.size < totalItems) {
+            currentPage++
+            val result = apiService.searchUsers(query, currentPage)
+            _users.value = _users.value + result.items
+        }
     }
 }
 
